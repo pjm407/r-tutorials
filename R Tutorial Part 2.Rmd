@@ -1,0 +1,653 @@
+---
+title: "Untitled"
+author: "Mattingly"
+date: "2/13/2020"
+output: pdf_document
+---
+
+getwd()
+setwd("/Users/petermattingly/Desktop/")
+
+
+## Tutorials:
+##  which type of plot works best
+##  https://www.data-to-viz.com/
+
+##  colors
+##  https://www.datanovia.com/en/blog/ggplot-colors-best-tricks-you-will-love/
+
+##  overall aesthetics
+##  http://urbanspatialanalysis.com/dataviz-tutorial-mapping-san-francisco-home-prices-using-r/
+
+
+### creating a notebook chunk
+'control' + 'option', then 'i'
+
+```{r}
+
+```
+
+
+### classic packages
+
+```{r}
+install.packages('data.table')
+install.packages('tidyverse')
+```
+
+
+### packages - colors
+
+```{r}
+install.packages("crayon")
+install.packages("prismatic")
+install.packages("magrittr")
+install.packages("scales")
+devtools::install_github("EmilHvitfeldt/prismatic")
+```
+
+### libraries
+
+```{r}
+## previous libraries
+library(data.table)
+library(tidyverse)
+
+## new libraries
+library(crayon)
+library(prismatic)
+library(magrittr)
+library(scales)
+```
+
+
+
+### import data
+
+```{r}
+data(iris)
+glimpse(iris)
+``` 
+
+
+### create row 'id' variable named
+
+```{r}
+iris <- iris %>% mutate(ID = row_number())
+glimpse(iris)
+```
+
+
+### reshape iris data - no notes
+
+```{r}
+iris_reshape <- iris %>%
+  gather(key = "key", value = "value", -Species, -ID) %>%
+  separate(key, c("Part","Measure"), sep =  "\\.") %>%
+  spread(Measure, value)
+```
+
+
+
+### dimensions / glimpse
+
+```{r}
+dim(iris_reshape)
+glimpse(iris_reshape)
+```
+
+
+### reshape iris data - w/ notes
+
+```{r}
+iris_reshape <- iris %>%
+  ### convert data from 'wide' to long'
+  ### designate 'key' variable for converting the remaining variables into a single categorical variable
+  ### designate 'value' variable to take on all corresponding values of those categories
+  gather(key = "key", value = "value", -Species, -ID) 
+glimpse(iris_reshape)
+```
+
+```{r}
+iris_reshape <- iris_reshape %>%
+  ### split up 'key' using "."
+  ### designate the names for the two new variables (e.g., 'part', 'measure')
+  separate(key, c("Part","Measure"))
+glimpse(iris_reshape)
+```
+
+```{r}
+iris_reshape <- iris_reshape %>%
+  ### convert data from 'long' to wide'
+  ### take nominal levels of 'measure' as new variables
+  spread(Measure, value)
+glimpse(iris_reshape)
+```
+
+
+```{r}
+setosa <- iris_reshape %>% filter(Species == "setosa")
+glimpse(setosa)
+```
+
+
+### ggplot
+
+####  "grammar of graphics"; graph componenets as building blocks
+####  flexibility; rigor
+
+### create base
+
+```{r}
+ggplot(data = iris_reshape)
+```
+
+
+
+### scatter/point plot
+
+```{r}
+ggplot(iris_reshape) +
+  ## geometry point
+  ## aesthetics - "something you can see"; a mapping between variable and a visual cue
+  geom_point(aes(x = Length,
+                 x = Width))
+```
+
+
+
+### scatter/point plot
+
+```{r}
+ggplot(iris_reshape) +
+  geom_point(y = Length,
+             x = Width)
+```
+
+
+
+### scatter/point plot
+
+```{r}
+ggplot(iris_reshape) +
+  geom_point(aes(y = Length,
+                 x = Width))
+```
+
+
+
+### aesthetic mapping
+####  shapes
+
+```{r}
+# squares
+### 0 - blank square
+### 15 - one-color square
+### 22 - two-color square
+
+# circles
+### 1 - blank circle
+### 16 - one-color circle
+### 21 - two-color circle
+
+# triangle
+### 2 - blank triangle
+### 17 - one-color triangle
+### 24 - two-color triangle
+```
+
+
+### aesthetic mapping - shapes
+
+```{r}
+ggplot(iris_reshape) +
+  geom_point(aes(y = Length,
+                 x = Width, 
+                 shape = Species))
+```
+
+
+
+### aesthetic mapping - shapes
+
+```{r}
+levels(iris_reshape$Species)
+```
+
+
+
+### aesthetic mapping - shape manual
+
+```{r}
+ggplot(iris_reshape) +
+  geom_point(aes(y = Length,
+                 x = Width, 
+                 shape = Species,
+                 color = Species)) + 
+  scale_shape_manual(name = "Species",
+                     labels = c("Setosa","Versicolor","Virginica"),
+                     values = c(22,21,24))
+```
+
+
+
+### aesthetic mapping - colors
+### color brewer: http://colorbrewer2.org/
+
+```{r}
+ggplot(iris_reshape) +
+  geom_point(aes(y = Length,
+                 x = Width, 
+                 color = Species,
+                 shape = Species)) + 
+  scale_shape_manual(name = "Species",
+                     labels = c("Setosa","Versicolor","Virginica"),
+                     values = c(22,21,24)) +
+    scale_color_manual(name = "Species",
+                     labels = c("Setosa","Versicolor","Virginica"),
+                     values = c("#9ecae1","#4292c6","#08519c"))
+```
+
+
+### color palettes 
+
+```{r}
+blue <- colorRampPalette(c("blue", "white"))
+blue(20)
+plot(rep(1, 20), col = blue(20), pch = 19, cex = 15)
+```
+
+
+
+
+####  see more info on prismatic package
+###   https://www.hvitfeldt.me/blog/manipulating-colors-with-prismatic/
+
+```{r}
+color(plasma(10))
+```
+
+
+
+```{r}
+color(viridis_pal()(5))
+```
+
+
+```{r}
+show_col(viridis_pal()(5))
+```
+
+
+
+
+### colors
+
+```{r}
+####  create palette
+palette1 <- color(terrain.colors(10))
+
+####  colors
+palette1 %>% plot()
+
+####  colors + label
+scales::show_col(palette1)
+
+
+####  colors + label
+scales::show_col(clr_tritan(palette1))
+
+clr_tritan(palette1) %>% plot()
+
+
+clr_tritan(palette1)
+```
+
+### colors - tritan
+
+```{r}
+#clr_saturate(palette1, 0.5) %>% plot()
+#clr_desaturate(palette1, .50) %>% plot()
+#clr_negate(palette1) %>% plot()
+new_pal <- clr_protan(palette1) %>% plot()
+new_pal <- clr_rotate(palette1, 80)
+clr_tritan(new_pal) %>% plot()
+```
+
+
+
+### aesthetic mapping - labels and colors
+
+```{r}
+ggplot(iris_reshape) +
+  geom_point(aes(y = Length,
+                 x = Width, 
+                 color = Width,
+                 fill = Species, 
+                 shape = Species)) + 
+      ### scale_color_gradient automatically goes from light to dark
+  #scale_color_gradient(low = "red", high = "blue") +
+      ### scale_color_gradient2 automatically goes from dark to light
+      ### scale_color_gradientn enables you to create a custom sscale
+  scale_color_gradientn(colors = (viridis_pal()(5))) +
+  labs(title = "Title",
+       subtitle = "Subtitle",
+       y = "Y - Axis",
+       x = "X - Axis",
+       caption = "Caption")
+```
+
+
+### aesthetic mapping - scales
+
+```{r}
+ggplot(iris_reshape) +
+  geom_point(aes(y = Length,
+                 x = Width, 
+                 color = Width,
+                 fill = Species, 
+                 shape = Species)) + 
+      ### scale_color_gradient automatically goes from light to dark
+  #scale_color_gradient(low = "red", high = "blue") +
+      ### scale_color_gradient2 automatically goes from dark to light
+      ### scale_color_gradientn enables you to create a custom sscale
+  scale_color_gradientn(colors = (viridis_pal()(5))) +
+  labs(title = "Title",
+       subtitle = "Subtitle",
+       y = "Y - Axis",
+       x = "X - Axis",
+       caption = "Caption") +
+  scale_y_continuous(limits = c(3,8,)) +
+  scale_x_continuous(limits = c(0.9,4.1)) 
+```
+
+
+
+### reduce redundancy in manual blocks
+
+```{r}
+### labels
+lab <- c("Setosa", "Versicolor", "Virginica")
+
+### colors
+cols <- c("setosa" = "#006FA6FF", "versicolor" = "#00E64DFF", "virginica" == "#440154FF")
+
+### shapes
+shapes <- c(22, 21, 24)
+```
+
+
+
+### aesthetic mapping - colors
+
+```{r}
+graph1 <- ggplot(iris_reshape) +
+  geom_point(aes(y = Length,
+                 x = Width, 
+                 color = Species,
+                 fill = Species, 
+                 shape = Species,
+                 size = Length), alpha = .5) + 
+  
+  scale_color_manual(name = "Speciez",
+                     labels = lab,
+                     values = cols) +
+  scale_fill_manual(labels = lab,
+                     values = cols) +
+  scale_shape_manual(labels = lab,
+                     values = shapes) +
+graph1
+ggsave("~/graph1.png", graph1, width = 16, height = 9, device = "png")
+```
+
+
+
+### aesthetic mapping - colors
+
+```{r}
+graph1 <- ggplot(iris_reshape) +
+  geom_point(aes(y = Length,
+                 x = Width, 
+                 color = Species,
+                 fill = Species, 
+                 shape = Species,
+                 size = Length), alpha = .5) + 
+  
+  scale_color_manual(name = "Species",
+                     labels = lab,
+                     values = cols) +
+  scale_fill_manual(labels = lab,
+                     values = cols) +
+  scale_shape_manual(labels = lab,
+                     values = shapes) +
+  scale_size(guide = FALSE) +
+  
+  
+  stat_smooth(aes(y = Length,
+                 x = Width), method = "lm", alpha = 0.65, size = 1.5, se = FALSE) +
+  
+  labs(title = "Title",
+       subtitle = "Subtitle",
+       y = "Y - Axis",
+       x = "X - Axis",
+       caption = "Caption") +
+  
+  facet_wrap(~Species)
+graph1
+ggsave("~/graph1.png", graph1, width = 16, height = 9, device = "png")
+```
+
+
+### flip coordinates
+
+```{r}
+graph1 + coord_flip()
+```
+
+
+
+### count bar plot
+
+```{r}
+ggplot(iris_reshape) +
+  geom_bar(aes(Species))
+```
+
+
+
+### count bar plot - fill
+
+```{r}
+ggplot(iris_reshape) +
+  geom_bar(aes(Species, 
+               fill = Part))
+```
+
+
+
+### count bar plot - fill; reverse
+
+```{r}
+ggplot(iris_reshape) +
+  geom_bar(aes(Species, 
+               fill = Part),
+           position = position_stack(reverse = TRUE))
+```
+
+
+
+
+### mean bar plot
+
+```{r}
+ggplot(iris_reshape) +
+  geom_col(aes(x = Species, 
+               y = Width))
+```
+
+
+
+### create median dataframe
+
+```{r}
+iris_median <- iris_reshape %>%
+  group_by(Species, Part) %>%
+  summarize(Length = median(Length),
+            Width = median(Width))
+glimpse(iris_median)
+```
+
+
+
+### group medians
+
+```{r}
+ggplot(iris_reshape) +
+  geom_bar(aes(y = Width, fill = Part, x = Species),
+           position = "dodge", stat = "identity", alpha = .85) +
+  
+  labs(title = "Title",
+       subtitle = "Subtitle",
+       y = "Y - Axis",
+       x = "X - Axis",
+       caption = "Caption")
+```
+
+
+
+### group medians - colors / adjust y axis
+
+```{r}
+ggplot(iris_median) +
+  geom_bar(aes(y = Width, fill = Part, x = Species),
+           position = "dodge", stat = "identity") +
+  
+  scale_fill_manual(name = "Part",
+                    labels = c("Petal","Sepal"),
+                    values = c("#FDE725FF","#3B528BFF")) +
+  
+    labs(title = "Title",
+       subtitle = "Subtitle",
+       y = "Y - Axis",
+       x = "X - Axis",
+       caption = "Caption") +
+  
+  coord_cartesian(ylim = c(1.8, 4))
+```
+
+
+
+### median bar plot - scales
+
+
+```{r}
+graph2 <- ggplot(iris_median) +
+  geom_bar(aes(y = Width, fill = Part, x = Species),
+           position = "dodge", stat = "identity") +
+  
+  scale_fill_manual(name = "Part",
+                    labels = c("Petal","Sepal"),
+                    values = c("#FDE725FF","#3B528BFF")) +
+  
+  scale_y_continuous(labels = comma) +
+  
+  scale_x_discrete(labels = toupper(levels(iris_median$Species))) + 
+  
+  labs(title = "Title",
+       subtitle = "Subtitle",
+       y = "Y - Axis",
+       x = "X - Axis",
+       caption = "Caption")
+graph2
+```
+
+
+
+### themes
+
+```{r}
+graph2 + theme_clean()
+ggsave("~/Desktop/graph2.png", graph2, width = 11.5, height = 9, device = "png")
+```
+
+
+
+
+```{r}
+plotTheme <- function(base_size = 12) {
+  theme(
+    text = element_text( color = "black"),
+    plot.title = element_text(size = 18,colour = "black"),
+    plot.subtitle = element_text(face="italic"),
+    plot.caption = element_text(hjust=0),
+    axis.ticks = element_blank(),
+    
+    panel.background = element_blank(),
+    panel.grid.major = element_line("grey80", size = 0.1),
+    panel.grid.minor = element_blank(),
+    
+    strip.background = element_rect(fill = "grey80", color = "white"),
+    strip.text = element_text(size=12),
+    
+    axis.title = element_text(size=8),
+    axis.text = element_text(size=8),
+    axis.title.x = element_text(hjust=1),
+    axis.title.y = element_text(hjust=1),
+    plot.background = element_blank(),
+    legend.background = element_blank(),
+    legend.title = element_text(colour = "black", face = "italic"),
+    legend.text = element_text(colour = "black", face = "italic"))
+}
+```
+
+
+
+```{r}
+graph2 + plotTheme()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

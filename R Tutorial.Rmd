@@ -1,0 +1,286 @@
+---
+title: "R Tutorial"
+author: "Mattingly"
+date: "2/10/2020"
+output: pdf_document
+---
+
+getwd()
+setwd("/Users/petermattingly/Desktop/")
+
+### creating a notebook chunk
+'control' + 'option', then 'i'
+
+```{r}
+
+```
+
+### running individual lines of code
+'command' then 'return'
+
+
+### assignment operator <-
+
+
+### creating pipe operator %>%
+'command' 'shift' 'm' = 
+
+
+### libraries and packages
+
+```{r}
+install.packages('data.table')
+install.packages('tidyverse')
+library(data.table)
+library(tidyverse)
+```
+
+
+
+### import data
+
+```{r}
+# 50 flowers from 3 species of iris
+# measurements (cm) for sepal and petal width and length
+data(iris)
+head(iris)
+```
+
+```{r}
+dim(iris)
+glimpse(iris)
+```
+
+
+### missing values
+
+```{r}
+table(is.na(iris))
+```
+
+
+```{r}
+iris$Sepal.Length[which(iris$Sepal.Length == -1 )] <- NA
+```
+
+
+
+```{r}
+summary(iris, na.rm = TRUE)
+```
+
+```{r}
+levels(iris$Species)
+```
+
+```{r}
+levels(iris$Sepal.Length)
+```
+
+```{r}
+class(iris$Sepal.Length)
+```
+
+
+### create row id variable
+
+```{r}
+### base r
+iris_base <- cbind(Flowers_base = rownames(iris), Iris)
+glimpse(iris_base)
+```
+
+```{r}
+### dplyr
+iris <- iris %>% mutate(Flowers = row_number())
+glimpse(iris)
+```
+
+
+### subsetting
+
+##### subsetting by value
+
+```{r}
+### base r
+setosa <- iris[iris$Species == "setosa",]
+glimpse(setosa)
+```
+
+```{r}
+### dplyr
+setosa_tidy <- iris %>% filter(Species = "setosa")
+glimpse(setosa_tidy)
+```
+
+
+
+##### subsetting by columns
+
+```{r}
+### base r
+iris_length <- iris[, c(1,3,5,9)]
+glimpse(iris_length)
+```
+
+
+```{r}
+### dplyr
+iris_length_dplyr <- iris %>% dplyr::select(matches("(Length|Species)"))
+glimpse(iris_length_dplyr)
+```
+
+
+```{r}
+### base r
+iris_width <- iris[, c(2,4,5)]
+
+### dplyr
+iris_width_dplyr <- iris %>% dplyr::select(matches("(Width Species)"))
+glimpse(iris_width_dplyr)
+```
+
+
+
+### frequencies
+
+```{r}
+### range
+range(iris$Sepal.Length)
+### frequency table
+table(iris$SepalLength)
+```
+
+```{r}
+### histogram
+hist(iris$Sepal.Length)
+### boxplot
+boxplot(iris$Sepal.Length, horizontal == TRUE)
+```
+
+
+```{r}
+quantile(iris$Sepal.Length)
+```
+
+
+```{r}
+quantile(iris$Sepal.Length, probs = c(0.05, 0.5, 0.95))
+```
+
+
+
+
+```{r}
+iris$Levels <- cut(iris$Sepal.Length, 3, include.lowest = TRUE, 
+                   labels = c("low","med","high","very high"))
+table(iris$Levels, iris$Sepal.Length)
+glimpse(iris)
+```
+
+
+```{r}
+iris_stats <- iris %>%
+  group_by(Species, Levels) %>%
+  summarize(Freq = n())
+head(iris_stats)
+```
+
+```{r}
+iris_stats <- iris %>%
+  group_by(Species, Levels) %>%
+  summarize(Freq = n(),
+            Mean = mean(Sepal.Length),
+            Median = median(Sepal.Length),
+            Stdv = sd(Sepal.Length)) %>%
+head(iris_stats)
+```
+
+
+### reshape iris data
+
+```{r}
+iris_reshape <- iris %>%
+  ### convert data from 'wide' to long'
+  ### designate 'key' variable for grouping all remaining variables
+  ### designate 'value' variable to take on all corresponding values
+  gather(key = "key", value = "value", -Species, -Flowers) 
+head(iris_reshape)
+```
+
+
+```{r}
+iris_reshape <- iris_reshape %>%
+  ### split up 'key' using "."
+  ### designate the names for the two new variables (e.g., 'part', 'measure')
+  separate(key, c("Part","Measure"), sep =  "\\.")
+head(iris_reshape)
+```
+
+
+```{r}
+iris_reshape <- iris_reshape %>%
+  ### convert data from 'long' to wide'
+  ### take nominal levels of 'measure' as new variables
+  spread(Measure, value)
+head(iris_reshape)
+```
+
+
+### reshape iris data
+
+```{r}
+iris_reshape <- iris %>%
+  gather(key = "key", value = "value", -Species, -Flowers) %>%
+  separate(key, c("Part","Measure"), sep =  "\\.") %>%
+  spread(Measure, value)
+
+dim(iris_reshape)
+glimpse(iris_reshape)
+```
+
+
+### save and open iris data
+
+```{r}
+write.csv(iris_reshape, "~/Desktop/r tutorial/iris_reshape.csv", row.names = FALSE)
+```
+
+```{r}
+iris_reshape <- fread("~/Desktop/r tutorial/iris_reshape.csv")
+glimpse(iris_reshape)
+```
+
+
+
+### new data
+
+```{r}
+data(nhtemp)
+str(nhtemp)
+```
+
+
+
+```{r}
+nhtemp <- as.data.frame(nhtemp)
+nottem <- nottem %>% rename(Temp = x)
+names(nhtemp)[1] <- "Temp"
+```
+
+
+### google: r convert time series to dataframe
+
+```{r}
+nhtemp <- data.frame(temp = as.matrix(nhtemp), year = time(nhtemp))
+glimpse(nhtemp)
+```
+
+```{r}
+
+```
+
+
+
+
+
